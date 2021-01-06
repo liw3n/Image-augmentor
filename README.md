@@ -10,6 +10,7 @@ A simple crossplatform image augmentation program that performs basic geometric 
 First, clone the repository to your working directory, CD into the repo root folder.
 
 ```git clone https://github.com/angus-y/Image-augmentor```
+
 ```cd Image-augmentor```
 
 Next, install the required modules from the ```requirements.txt``` file.
