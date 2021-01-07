@@ -12,7 +12,9 @@ parser.add_argument("--ftb", help='Perform a top bottom flip on the image', acti
 parser.add_argument("--trs", metavar=('X','Y'), help='Perform a translation on the image displacing it along the axis by a certain number of X and Y pixels (+ve values translate left and upwards -ve values translate right and downwards)', nargs=2, type=int)
 parser.add_argument("--crop", metavar=('X1','Y1','X2','Y2'), help='Perform an image crop on the bounding box : Upperleft (X1, Y1) and lower right (X2, Y2)', nargs=4, type=int)
 parser.add_argument("--gau", metavar='RADIUS', help='Perform a gaussian blur transformation on the image with a specific pixel RADIUS', type=int)
-parser.add_argument("--sha", metavar='ITERATIONS', help='Perform a sharpen transformation on the image for a number of ITERATIONS ', type=int)
+parser.add_argument("--rangau", metavar=("LOWERBOUND","UPPERBOUND"), help='Perform a gaussian blur transformation on the image with a specific pixel radius randomly chosen between LOWERBOUND and UPPERBOUND', nargs=2, type=int)
+parser.add_argument("--sha", metavar='ITERATIONS', help='Perform a sharpen transformation on the image for a number of ITERATIONS', type=int)
+parser.add_argument("--ransha", metavar=("LOWERBOUND","UPPERBOUND"), help='Perform a sharpen transformation on the image for a number of iterations randomly chosen between LOWERBOUND and UPPERBOUND', nargs=2, type=int)
 parser.add_argument("--rot", metavar="DEGREES", help='Perform an image rotation by the specified DEGREES counter clockwise (-ve for clockwise rotation)', type=int )
 parser.add_argument("--ranrot", help='Perform a counterclockwise image rotation by a certain number of degrees randomly chosen between LOWERBOUND and UPPERBOUND (-ve for clockwise rotation)',
                     metavar=("LOWERBOUND","UPPERBOUND"), nargs=2, type=int)
@@ -77,10 +79,22 @@ def logic_handler(image, args, filename):
         save_file(translate(image, args.trs[0], args.trs[1], fill), file_attr, '_trs', current_dir)
     if args.gau:
         save_file(gaussian_blur(image, args.gau), file_attr, '_gau', current_dir)
+    if args.rangau:
+        if (args.rangau[0] > 0 and args.rangau[1] > 0) and (args.rangau[0] < args.rangau[1]):
+            save_file(gaussian_blur(image, random.randint(args.rangau[0], args.rangau[1])), file_attr, '_gau', current_dir)
+        else:
+            print ('[-]LOWERBOUND and UPPERBOUND must both be greater than 0, LOWERBOUND must be smaller than UPPERBOUND')
     if args.sha:
         for i in range(args.sha):
             image = sharpen(image)
         save_file(image, file_attr, '_sha', current_dir)
+    if args.ransha:
+        if (args.ransha[0] > 0 and args.ransha[1] > 0) and (args.ransha[0] < args.ransha[1]):
+            for i in range(random.randint(args.ransha[0], args.ransha[1])):
+                image = sharpen(image)
+            save_file(image, file_attr, '_ransha', current_dir)
+        else:
+            print ('[-]LOWERBOUND and UPPERBOUND must both be greater than 0, LOWERBOUND must be smaller than UPPERBOUND')
     if args.crop:
         save_file(crop(image, args.crop[0], args.crop[1], args.crop[2], args.crop[3]), file_attr, '_crop', current_dir)
 
@@ -94,7 +108,7 @@ def main():
             logic_handler(image, args, args.input)
         except UnidentifiedImageError:
             print ("[-]Invalid image file provided")
-    elif os.path.isdir(args.input): #INCOMPLETE
+    elif os.path.isdir(args.input):
         os.chdir(args.input)
         for filename in os.listdir(os.getcwd()):
             try:
