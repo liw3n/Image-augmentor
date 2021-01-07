@@ -1,6 +1,7 @@
 import os
 import random
 import argparse
+from datetime import datetime
 from PIL import Image, UnidentifiedImageError, ImageFilter
 
 
@@ -46,29 +47,42 @@ def crop(image, x1, y1, x2, y2):
     return image.crop((x1, y1, x2, y2))
 
 
+def save_file(image, file_attr, transformation, current_dir):
+    filename = file_attr[0] + transformation + file_attr[1]
+    if filename in current_dir:
+        copy = 1
+        filename = file_attr[0] + transformation + ' (' + str(copy) + ')' + file_attr[1]
+        while filename in current_dir:
+            copy += 1
+            filename = file_attr[0] + transformation + ' (' + str(copy) + ')' + file_attr[1]
+    image.save(filename)
+
+
 def logic_handler(image, args, filename):
     fill = args.fill
+    file_attr = os.path.splitext(filename)
+    current_dir = os.listdir(os.getcwd())
     if args.flr:
-        flip_left_right(image).show()
+        save_file(flip_left_right(image), file_attr, '_flr', current_dir)
     if args.ftb:
-        flip_top_bottom(image).show()
+        save_file(flip_top_bottom(image), file_attr, '_ftb', current_dir)
     if args.rot:
-        rotate(image, args.rot, fill).show()
+        save_file(rotate(image, args.rot, fill), file_attr, '_rot', current_dir)
     if args.ranrot:
         if args.ranrot[0] < args.ranrot[1]:
-            rotate(image, random.randint(args.ranrot[0], args.ranrot[1]), fill).show()
+            save_file(rotate(image, random.randint(args.ranrot[0], args.ranrot[1]), fill), file_attr, '_ranrot', current_dir)
         else:
             print('[-]LOWERBOUND must be smaller than UPPERBOUND')
     if args.trs:
-        translate(image, args.trs[0], args.trs[1], fill).show()
+        save_file(translate(image, args.trs[0], args.trs[1], fill), file_attr, '_trs', current_dir)
     if args.gau:
-        gaussian_blur(image, args.gau).show()
+        save_file(gaussian_blur(image, args.gau), file_attr, '_gau', current_dir)
     if args.sha:
         for i in range(args.sha):
             image = sharpen(image)
-        image.show()
+        save_file(image, file_attr, '_sha', current_dir)
     if args.crop:
-        crop(image, args.crop[0], args.crop[1], args.crop[2], args.crop[3]).show()
+        save_file(crop(image, args.crop[0], args.crop[1], args.crop[2], args.crop[3]), file_attr, '_crop', current_dir)
 
 
 def main():
